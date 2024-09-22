@@ -26,10 +26,7 @@ def put_option_price(S, K, T, r, sigma):
 
 # Generate a 10x10 range of stock prices and volatilities
 
-@st.cache_data
 def Option_Pricing_Chart(S, S_min, S_max, sigma0, sigma_min, sigma_max, K, T, r):
-
-    print(S, sigma0, K, T, r)
 
     selected_call_price = round(call_option_price(S, K, T, r, sigma0),3)
     selected_put_price = round(put_option_price(S, K, T, r, sigma0),3)
@@ -40,9 +37,6 @@ def Option_Pricing_Chart(S, S_min, S_max, sigma0, sigma_min, sigma_max, K, T, r)
     # Create a grid of stock prices and volatilities
     S_grid, sigma_grid = np.meshgrid(S_values, sigma_values)
 
-
-    print(selected_call_price)
-
     # Calculate call option prices over the grid
     call_prices_grid = np.array([[call_option_price(S, K, T, r, sigma) for S in S_values] for sigma in sigma_values])
 
@@ -51,19 +45,16 @@ def Option_Pricing_Chart(S, S_min, S_max, sigma0, sigma_min, sigma_max, K, T, r)
 
     # Heatmap with smaller font size (Call Option Prices)
     fig1, ax1 = plt.subplots(figsize=(10, 6))
-    sns.heatmap(call_prices_grid, annot=True, fmt=".2f", cmap='viridis', xticklabels=np.round(S_values, 2), 
-                yticklabels=np.round(sigma_values, 2), ax=ax1, annot_kws={"size": 8})
-    ax1.set_xlabel('Stock Price (S)')
+    sns.heatmap(call_prices_grid, annot=True, fmt=".2f", cmap='viridis', xticklabels=np.round(S_values, 1), 
+                yticklabels=np.round(sigma_values, 2), ax=ax1, annot_kws={"size": 10})
+    ax1.set_xlabel('Stock Price')
     ax1.set_ylabel('Volatility (σ)')
-    ax1.set_title('Call Option Prices Heatmap')
 
     # Heatmap with smaller font size (Put Option Prices)
     fig2, ax2 = plt.subplots(figsize=(10, 6))
-    sns.heatmap(put_prices_grid, annot=True, fmt=".2f", cmap='plasma', xticklabels=np.round(S_values, 2), 
-                yticklabels=np.round(sigma_values, 2), ax=ax2, annot_kws={"size": 8})
-    ax2.set_xlabel('Stock Price (S)')
+    sns.heatmap(put_prices_grid, annot=True, fmt=".2f", cmap='plasma', xticklabels=np.round(S_values, 1), 
+                yticklabels=np.round(sigma_values, 2), ax=ax2, annot_kws={"size": 10})
+    ax2.set_xlabel('Stock Price')
     ax2.set_ylabel('Volatility (σ)')
-    ax2.set_title('Put Option Prices Heatmap')
 
-    
     return selected_call_price,selected_put_price, fig1, fig2
