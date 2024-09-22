@@ -4,7 +4,7 @@ import os
 import sys
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
-from Option_Pricing.Option_Pricing import Option_Pricing_Chart
+from BSM.Option_Pricing import Option_Pricing_Chart
 
 def BSM_Streamlit_Page():
     # User inputs for the option pricing model

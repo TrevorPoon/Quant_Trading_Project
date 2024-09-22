@@ -4,18 +4,19 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.graph_objects as go
 from scipy.stats import norm
-from Option_Pricing.Streamlit_Page import BSM_Streamlit_Page
+from BSM.Streamlit_Page_BSM import BSM_Streamlit_Page
+from VSM.Streamlit_Page_VSM import VSM_Streamlit_Page
 
 # Page selection
 st.set_page_config(layout="wide")
-page = st.sidebar.selectbox("Choose a page", ["Option Pricing", "Implied Volatility Estimation"])
+page = st.sidebar.selectbox("Choose a page", ["Option Pricing", "Volatility Surface Modelling"])
 st.sidebar.divider()
 
 if page == "Option Pricing":
 
     BSM_Streamlit_Page()
 
-elif page == "Implied Volatility Estimation":
+elif page == "Volatility Surface Modelling":
 
-    st.write('hi')
+    VSM_Streamlit_Page()
 
