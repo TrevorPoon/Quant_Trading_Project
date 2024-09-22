@@ -1,61 +1,98 @@
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
+import plotly.graph_objects as go
 from scipy.stats import norm
+from Option_Pricing.Option_Pricing import Option_Pricing_Chart
 
-# Function to calculate d1 and d2 in Black-Scholes Model
-def black_scholes_d1(S, K, T, r, sigma):
-    return (np.log(S/K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+# Page selection
+st.set_page_config(layout="wide")
+page = st.sidebar.selectbox("Choose a page", ["Option Pricing", "Monte Carlo Simulation"])
+st.sidebar.divider()
 
-def black_scholes_d2(d1, sigma, T):
-    return d1 - sigma * np.sqrt(T)
+if page == "Option Pricing":
+    # Streamlit UI for Option Pricing Heatmap
+    
 
-# Black-Scholes formula for Call and Put options
-def call_option_price(S, K, T, r, sigma):
-    d1 = black_scholes_d1(S, K, T, r, sigma)
-    d2 = black_scholes_d2(d1, sigma, T)
-    return S * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
+    # User inputs for the option pricing model
+    st.sidebar.header('Input Parameters')
+    S = st.sidebar.number_input('Spot Price (S)', min_value=0.1, max_value=10000.0, value=100.0, step=0.1)
+    K = st.sidebar.number_input('Strike Price (K)', min_value=0.1, max_value=1000.0, value=100.0, step=1.0)
+    T = st.sidebar.number_input('Time to Expiration (Years)', min_value=0.0001, max_value=1.0, value=1.0, step=1.0)
+    sigma0 = st.sidebar.number_input('Volatility (σ)', min_value=0.0, max_value=1.0, value=0.2, step=0.01)
+    r = st.sidebar.number_input('Risk-Free Interest Rate (r)', min_value=0.0, max_value=0.2, value=0.05, step=0.01)
 
-def put_option_price(S, K, T, r, sigma):
-    d1 = black_scholes_d1(S, K, T, r, sigma)
-    d2 = black_scholes_d2(d1, sigma, T)
-    return K * np.exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
+    st.sidebar.divider()
+    
+    # Heatmap axis limits
+    st.sidebar.subheader('Heatmap Axis Ranges')
+    S_min = st.sidebar.number_input('Minimum Stock Price (S)', min_value=0.1, max_value=10000.0, value=S*0.9, step=0.1)
+    S_max = st.sidebar.number_input('Maximum Stock Price (S)', min_value=0.1, max_value=10000.0, value=S*1.1, step=0.1)
+    sigma_min = st.sidebar.number_input('Minimum Volatility (σ)', min_value=0.01, max_value=1.0, value=sigma0 - 0.1, step=0.01)
+    sigma_max = st.sidebar.number_input('Maximum Volatility (σ)', min_value=0.01, max_value=1.0, value=sigma0 + 0.1, step=0.01)
 
-# Streamlit UI
-st.title('Option Pricing Visualization')
-st.sidebar.header('Input Parameters')
+    
+    call_price, put_price, fig1, fig2 = Option_Pricing_Chart(S, S_min, S_max, sigma0, sigma_min, sigma_max, K, T, r)
+    
 
-# User inputs for the option pricing model
-S = st.sidebar.slider('Stock Price (S)', min_value=10.0, max_value=500.0, value=100.0, step=1.0)
-K = st.sidebar.slider('Strike Price (K)', min_value=10.0, max_value=500.0, value=100.0, step=1.0)
-T = st.sidebar.slider('Time to Expiration (T in years)', min_value=0.01, max_value=2.0, value=1.0, step=0.01)
-r = st.sidebar.slider('Risk-Free Interest Rate (r)', min_value=0.0, max_value=0.2, value=0.05, step=0.01)
-sigma = st.sidebar.slider('Volatility (σ)', min_value=0.01, max_value=1.0, value=0.2, step=0.01)
+    # Display Call and Put Prices with nicer formatting
+    st.markdown("<h1 style='text-align: left;'>Black Scholes Option Pricing Model</h1>", unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric(label='Call Price', value=f"${call_price:.2f}", delta=None)
+    with col2:
+        st.metric(label='Put Price', value=f"${put_price:.2f}", delta=None)
 
-# Calculate option prices
-call_price = call_option_price(S, K, T, r, sigma)
-put_price = put_option_price(S, K, T, r, sigma)
+    # Separator for visual appeal
+    st.markdown("---")
 
-# Display results
-st.write(f"### Call Option Price: {call_price:.2f}")
-st.write(f"### Put Option Price: {put_price:.2f}")
+    # Section Title for Heatmap
+    st.markdown("<h1 style='text-align: left;'>Option Pricing Interactive Heatmap</h1>", unsafe_allow_html=True)
 
-# Plot the effect of changing stock price on option prices
-S_values = np.linspace(10, 500, 100)
-call_prices = [call_option_price(S, K, T, r, sigma) for S in S_values]
-put_prices = [put_option_price(S, K, T, r, sigma) for S in S_values]
+    # Create columns for heatmap display
+    col1, col2 = st.columns(2)
 
-# Plotting
-fig, ax = plt.subplots()
-ax.plot(S_values, call_prices, label='Call Option Price', color='blue')
-ax.plot(S_values, put_prices, label='Put Option Price', color='red')
-ax.set_xlabel('Stock Price (S)')
-ax.set_ylabel('Option Price')
-ax.legend()
-ax.set_title('Option Prices vs Stock Price')
+    # Display heatmaps in Streamlit
+    with col1:
+        st.subheader('Call Option Prices')
+        st.pyplot(fig1)
 
-# Clear previous plot
-plt.tight_layout()
+    with col2:
+        st.subheader('Put Option Prices')
+        st.pyplot(fig2)
 
-# Display plot in Streamlit
-st.pyplot(fig)
+    # Add some additional space at the bottom
+    st.markdown("<br>", unsafe_allow_html=True)
+
+elif page == "Monte Carlo Simulation":
+
+    st.title('Monte Carlo Simulation')
+
+    # Monte Carlo Simulation Parameters
+    st.sidebar.header('Monte Carlo Simulation Parameters')
+    S0 = st.sidebar.number_input('Initial Stock Price (S0)', min_value=0.1, max_value=10000.0, value=100.0, step=0.1)
+    T = st.sidebar.number_input('Time to Expiration (T in years)', min_value=0.01, max_value=2.0, value=1.0, step=0.01)
+    r = st.sidebar.number_input('Risk-Free Rate (r)', min_value=0.0, max_value=0.2, value=0.05, step=0.01)
+    sigma = st.sidebar.number_input('Volatility (σ)', min_value=0.01, max_value=1.0, value=0.2, step=0.01)
+    simulations = st.sidebar.number_input('Number of Simulations', min_value=100, max_value=10000, value=1000, step=100)
+    
+    # Perform Monte Carlo Simulation
+    np.random.seed(42)
+    dt = T / 252
+    S = np.zeros((simulations, 252))
+    S[:, 0] = S0
+
+    # Simulate price paths
+    for t in range(1, 252):
+        S[:, t] = S[:, t-1] * np.exp((r - 0.5 * sigma**2) * dt + sigma * np.sqrt(dt) * np.random.randn(simulations))
+
+    # Plot the results of Monte Carlo simulation
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(S.T, lw=1)
+    ax.set_title('Monte Carlo Simulation of Stock Price Paths')
+    ax.set_xlabel('Time (days)')
+    ax.set_ylabel('Stock Price')
+    
+    # Display Monte Carlo simulation plot
+    st.pyplot(fig)
